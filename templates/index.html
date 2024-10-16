@@ -109,7 +109,10 @@
   <body>
     <h1>Image CDN</h1>
     <div id="dropzone">
-      <p>Drag and drop images here, or click to select files</p>
+      <p>
+        Drag and drop images here, click to select files, or paste from
+        clipboard
+      </p>
       <input
         type="file"
         id="file-input"
@@ -214,6 +217,22 @@
           const url = e.target.getAttribute("data-url");
           copyToClipboard(url);
           alert("URL copied to clipboard");
+        }
+      });
+
+      // Add this new event listener for paste events
+      document.addEventListener("paste", (e) => {
+        e.preventDefault();
+        const items = e.clipboardData.items;
+        const files = [];
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.indexOf("image") !== -1) {
+            const blob = items[i].getAsFile();
+            files.push(blob);
+          }
+        }
+        if (files.length > 0) {
+          handleFiles(files);
         }
       });
     </script>
