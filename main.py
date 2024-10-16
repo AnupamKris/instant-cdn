@@ -10,7 +10,7 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-    BASE_URL: str = "https://cdn.anupamkris.me"
+    BASE_URL: str = "https://stash.anupamkris.me"
 
 
 settings = Settings()
