@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image CDN</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+      #dropzone {
+        border: 2px dashed #3498db;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+        background-color: #ecf0f1;
+        transition: background-color 0.3s ease;
+      }
+      #dropzone:hover {
+        background-color: #e0e6e8;
+      }
+      .grid-container {
+        display: grid;
+        grid-template-columns: minmax(100px, 1fr) minmax(150px, 2fr) minmax(
+            200px,
+            3fr
+          );
+
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+      .grid-header {
+        font-weight: bold;
+        background-color: #3498db;
+        color: #fff;
+        padding: 15px;
+        text-transform: uppercase;
+      }
+      .grid-item {
+        padding: 15px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        min-height: 100px;
+      }
+      .grid-row:last-child .grid-item {
+        border-bottom: none;
+      }
+      .image-preview {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 5px;
+      }
+      .url-cell {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        grid-column: span 2;
+      }
+      .url-text {
+        word-break: break-all;
+        flex-grow: 1;
+      }
+      .copy-btn {
+        cursor: pointer;
+        background-color: #2ecc71;
+        color: #fff;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        font-size: 14px;
+        transition: background-color 0.3s ease;
+        white-space: nowrap;
+      }
+      .copy-btn:hover {
+        background-color: #27ae60;
+      }
+      @media (max-width: 768px) {
+        .grid-container {
+          grid-template-columns: 1fr;
+        }
+        .grid-header {
+          display: none;
+        }
+        .grid-item {
+          padding: 10px;
+        }
+        .url-cell {
+          flex-direction: column;
+          align-items: flex-start;
+          grid-column: span 2;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Image CDN</h1>
+    <div id="dropzone">
+      <p>Drag and drop images here, or click to select files</p>
+      <input
+        type="file"
+        id="file-input"
+        accept="image/*"
+        multiple
+        style="display: none"
+      />
+    </div>
+    <div class="grid-container">
+      <div class="grid-header">Preview</div>
+      <!-- <div class="grid-header">Filename</div> -->
+      <div class="grid-header" style="grid-column: span 2">URL</div>
+
+      {% for image in images %}
+
+      <div class="grid-item">
+        <img
+          src="{{ image.url }}"
+          alt="{{ image.filename }}"
+          class="image-preview"
+        />
+      </div>
+      <!-- <div class="grid-item">{{ image.filename }}</div> -->
+      <div class="grid-item url-cell">
+        <span class="url-text">{{ image.url }}</span>
+        <button class="copy-btn" data-url="{{ image.url }}">Copy</button>
+      </div>
+
+      {% endfor %}
+    </div>
+
+    <script>
+      const dropzone = document.getElementById("dropzone");
+      const fileInput = document.getElementById("file-input");
+
+      dropzone.addEventListener("click", () => fileInput.click());
+
+      dropzone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropzone.style.backgroundColor = "#f0f0f0";
+      });
+
+      dropzone.addEventListener("dragleave", () => {
+        dropzone.style.backgroundColor = "";
+      });
+
+      dropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropzone.style.backgroundColor = "";
+        handleFiles(e.dataTransfer.files);
+      });
+
+      fileInput.addEventListener("change", (e) => {
+        handleFiles(e.target.files);
+      });
+
+      function handleFiles(files) {
+        if (files.length > 0) {
+          uploadFiles(files);
+        }
+      }
+
+      async function uploadFiles(files) {
+        const formData = new FormData();
+        for (let i = 0; i < files.length; i++) {
+          formData.append("files", files[i]);
+        }
+
+        try {
+          const response = await fetch("/upload", {
+            method: "POST",
+            body: formData,
+          });
+          const result = await response.json();
+          const urls = result.uploaded_files.map((file) => file.url);
+          copyToClipboard(urls.join("\n"));
+          alert(
+            `Images uploaded successfully. URLs copied to clipboard:\n${urls.join(
+              "\n"
+            )}`
+          );
+          location.reload();
+        } catch (error) {
+          console.error("Error uploading files:", error);
+          alert("Error uploading files");
+        }
+      }
+
+      function copyToClipboard(text) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => {
+            console.log("URLs copied to clipboard");
+          })
+          .catch((err) => {
+            console.error("Failed to copy URLs: ", err);
+          });
+      }
+
+      document.addEventListener("click", function (e) {
+        if (e.target && e.target.classList.contains("copy-btn")) {
+          const url = e.target.getAttribute("data-url");
+          copyToClipboard(url);
+          alert("URL copied to clipboard");
+        }
+      });
+    </script>
+  </body>
+</html>
