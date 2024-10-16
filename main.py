@@ -24,7 +24,7 @@ app.mount("/static", StaticFiles(directory="/mainuploads"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # Create a directory to store uploaded images
-UPLOAD_DIR = "static/uploads"
+UPLOAD_DIR = "/mainuploads/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
