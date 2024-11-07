@@ -7,6 +7,7 @@ import os
 from typing import List
 import uuid
 from pydantic import BaseSettings
+from fastapi.middleware.cors import CORSMiddleware
 
 
 class Settings(BaseSettings):
@@ -16,6 +17,17 @@ class Settings(BaseSettings):
 settings = Settings()
 
 app = FastAPI()
+
+# Add CORS middleware
+origins = ["http://localhost:5173", "http://localhost:3000", "https://*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Mount the static directory
 app.mount("/static", StaticFiles(directory="/mainuploads"), name="static")
